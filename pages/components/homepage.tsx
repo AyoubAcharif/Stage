@@ -82,7 +82,7 @@ export default function HomePage() {
                             fit={'cover'}
                             align={'center'}
                             w={'100%'}
-                            h={'110%'}
+                            h={'100%'}
                             src={
                                 'images/generateur.jpg'
                             }
