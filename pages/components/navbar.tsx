@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Flex,
@@ -18,7 +18,7 @@ import {
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon, MoonIcon, SunIcon } from '@chakra-ui/icons';
 import Link from 'next/link';
-import { type Props } from 'next/script';
+import { useRouter } from 'next/router';
 
 interface Link {
     label: string;
@@ -30,7 +30,6 @@ const Links: Link[] = [
     { label: 'Encodage', href: '/PageEncodage' },
     { label: 'Importation', href: '/PageImportation' },
     { label: 'Historique', href: '/Historique' }
-
 ];
 
 const NavLink = (props: Props) => {
@@ -52,14 +51,19 @@ const NavLink = (props: Props) => {
     )
 }
 
-export default function Simple() {
+export default function Navbar({ isAuthenticated }) {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const { colorMode, toggleColorMode } = useColorMode();
+    const router = useRouter();
+    const handleLogout = () => {
+        // Effectuez ici la logique pour gérer la déconnexion
+        isAuthenticated(false); // Mettez à jour l'état d'authentification à false après une déconnexion réussie
+    };
 
-
-
-
-
+    const handleLogin = () => {
+        // Effectuez ici la logique pour gérer la connexion
+        router.push('/LoginPage'); // Redirigez l'utilisateur vers la page de connexion
+    };
 
     return (
         <>
@@ -99,19 +103,16 @@ export default function Simple() {
                                 minW={0}>
                                 <Avatar
                                     size={'sm'}
-
                                 />
                             </MenuButton>
                             <MenuList>
-                                <MenuItem>Bienvenue </MenuItem>
-                                <MenuDivider />
-                                <MenuItem >Logout</MenuItem>
+                                <MenuItem>
+                                    <Button onClick={isAuthenticated ? handleLogout : handleLogin}>
+                                        {isAuthenticated ? 'Déconnexion' : 'Connexion AD'}
+                                    </Button>
+                                </MenuItem>
                             </MenuList>
                         </Menu>
-
-
-
-
                     </Flex>
                 </Flex>
 
@@ -121,7 +122,6 @@ export default function Simple() {
                             {Links.map((link) => (
                                 <NavLink key={link.label} href={link.href}>{link.label}</NavLink>
                             ))}
-
                         </Stack>
                     </Box>
                 ) : null}
