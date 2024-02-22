@@ -10,7 +10,7 @@ export default function Historique() {
 
     return (
         <>
-            <Navbar />
+            <Navbar isAuthenticated={undefined} />
             <h1>Historique</h1>
         </>
     );

@@ -36,7 +36,7 @@ export default function ImportPage() {
 
     return (
         <>
-            <Navbar />
+            <Navbar isAuthenticated={undefined} />
             <Box as="main" minH={"calc(100vh - 8rem)"}>
 
                 <input type="file" onChange={handleFileChange} />

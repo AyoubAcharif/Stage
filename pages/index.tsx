@@ -7,7 +7,6 @@ import {
   Box,
   Heading,
   Text,
-  Button,
   Image,
   Icon,
   IconButton,
@@ -21,7 +20,7 @@ import Footer from './components/footer'
 
 export default function Home() {
   return (
-    <><Navbar />
+    <><Navbar isAuthenticated={undefined} />
       <Box as="main" minH={"calc(100vh - 8rem)"} >
         <HomePage />
         <br />
