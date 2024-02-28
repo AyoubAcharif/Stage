@@ -7,7 +7,7 @@ import { useState } from 'react';
 export default function ImportPage() {
     const [selectedFile, setSelectedFile] = useState(null);
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e: any) => {
         setSelectedFile(e.target.files[0]);
     };
 
@@ -36,7 +36,7 @@ export default function ImportPage() {
 
     return (
         <>
-            <Navbar isAuthenticated={undefined} />
+            <Navbar />
             <Box as="main" minH={"calc(100vh - 8rem)"}>
 
                 <input type="file" onChange={handleFileChange} />
