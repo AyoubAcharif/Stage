@@ -34,20 +34,30 @@ export default function Navbar() {
     const [password, setPassword] = useState('');
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isErrorAlertOpen, setIsErrorAlertOpen] = useState(false);
+    const [userInfo, setUserInfo] = useState('');
     const { colorMode, toggleColorMode } = useColorMode();
     const cancelRef = React.useRef();
     const router = useRouter();
 
     useEffect(() => {
-        // Récupérez le statut de connexion depuis le localStorage lors du chargement du composant
-        const loggedInStatus = localStorage.getItem('isLoggedIn');
-        if (loggedInStatus === 'true') {
-            setIsAuthenticated(true);
+        if (isAuthenticated) {
+            fetch('/api/userInfo?username=' + encodeURIComponent(username))
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Erreur lors de la récupération des informations utilisateur');
+                    }
+                })
+                .then(data => {
+                    setUserInfo(data.commonName);
+                })
+                .catch(error => console.error('Erreur lors de la récupération des informations utilisateur :', error));
         }
-    }, []);
+    }, [isAuthenticated]);
 
     const handleLogin = () => {
-        fetch('http://localhost:3001/api/login', {
+        fetch('/api/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,7 +77,7 @@ export default function Navbar() {
                     setIsErrorAlertOpen(true);
                     setTimeout(() => {
                         setIsErrorAlertOpen(false);
-                    }, 1500)
+                    }, 1500);
                 }
             })
             .catch(error => {
@@ -78,7 +88,8 @@ export default function Navbar() {
     };
 
     const handleLogout = () => {
-        fetch('http://localhost:3001/api/logout', {
+        // Déconnecter l'utilisateur
+        fetch('/api/logout', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -99,11 +110,10 @@ export default function Navbar() {
         setIsAuthenticated(false);
         setUsername('');
         setPassword('');
-        //localstorage => sert à stocker des données dans le navigateur
+        setUserInfo('');
         localStorage.setItem('isLoggedIn', 'false');
         router.push('/');
     };
-
 
     return (
         <>
@@ -134,16 +144,37 @@ export default function Navbar() {
 
                     <Flex alignItems={'center'}>
                         {isAuthenticated ? (
-                            <Button onClick={handleLogout}>Déconnexion</Button>
+                            <Menu>
+                                <MenuButton
+                                    as={Button}
+                                    rounded={'full'}
+                                    variant={'link'}
+                                    cursor={'pointer'}
+                                    minW={0}>
+                                    <Avatar
+                                        size={'sm'}
+                                        name={userInfo}
+
+                                    />
+
+                                </MenuButton>
+                                <MenuList>
+                                    <MenuItem>Bienvenue, {userInfo}</MenuItem>
+                                    <MenuItem onClick={handleLogout}>Déconnexion</MenuItem>
+                                </MenuList>
+                            </Menu>
                         ) : (
                             <Menu>
                                 <MenuButton
                                     as={Button}
                                     rounded={'full'}
-                                    variant={'ghost'}
+                                    variant={'link'}
                                     cursor={'pointer'}
                                     minW={0}>
-                                    Connexion
+                                    <Avatar
+                                        size={'sm'}
+                                    />
+
                                 </MenuButton>
                                 <MenuList>
                                     <Stack spacing={4} p={4}>
@@ -218,8 +249,6 @@ export default function Navbar() {
                     </AlertDialogContent>
                 </AlertDialogOverlay>
             </AlertDialog>
-
         </>
     );
 };
-

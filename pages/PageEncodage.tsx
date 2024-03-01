@@ -29,7 +29,7 @@ export default function EncodagePage() {
     const toast = useToast()
 
     useEffect(() => {
-        fetch('http://localhost:3002/api/tables')
+        fetch('/api/tables')
             .then(response => response.json())
             .then(data => setTables(data))
             .catch(error => console.error('Erreur lors de la récupération des tables :', error));
@@ -40,7 +40,7 @@ export default function EncodagePage() {
         setTableSelectionnee(tableName);
         setChampValues({}); // Réinitialiser les valeurs des champs lors du changement de table
 
-        fetch(`http://localhost:3002/api/tables/${tableName}`)
+        fetch(`/api/tables/${tableName}`)
             .then(response => response.json())
             .then(data => {
                 setChampsTableSelectionnee(data);
@@ -56,7 +56,7 @@ export default function EncodagePage() {
     };
 
     const insertion_valeurs = async () => {
-        const response = await fetch(`http://localhost:3002/api/tables/${tableSelectionnee}/insertion`, {
+        const response = await fetch(`/api/tables/${tableSelectionnee}/insertion`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
