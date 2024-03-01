@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Flex,
@@ -8,114 +8,151 @@ import {
     FormLabel,
     Input,
     Button,
-    Table,
-    Thead,
-    Tbody,
-    Tr,
-    Th,
-    Td,
+    useToast,
+    Popover,
+    PopoverTrigger,
+    PopoverArrow,
+    PopoverBody,
+    PopoverHeader,
+    PopoverContent,
+    IconButton
 } from '@chakra-ui/react';
 import Navbar from './components/navbar';
 import Footer from './components/footer';
-
-interface Table {
-    name: string;
-    fields: string[];
-}
-
-const tables: Table[] = [
-    { name: 'Table 1', fields: ['Field 1', 'Field 2', 'Field 3'] },
-    { name: 'Table 2', fields: ['Field A', 'Field B', 'Field C'] },
-    { name: 'Table 3', fields: ['Field X', 'Field Y', 'Field Z'] },
-];
+import { InfoIcon } from '@chakra-ui/icons';
 
 export default function EncodagePage() {
-    const [selectedTable, setSelectedTable] = React.useState<string>('');
-    const [selectedFields, setSelectedFields] = React.useState<string[]>([]);
-    const [data, setData] = React.useState<{ [key: string]: string }>({});
-    const [displayTable, setDisplayTable] = React.useState<boolean>(false);
+    const [tables, setTables] = useState([]);
+    const [tableSelectionnee, setTableSelectionnee] = useState('');
+    const [champsTableSelectionnee, setChampsTableSelectionnee] = useState([]);
+    const [champValues, setChampValues] = useState({});
+    const toast = useToast()
 
-    const handleTableChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    useEffect(() => {
+        fetch('http://localhost:3002/api/tables')
+            .then(response => response.json())
+            .then(data => setTables(data))
+            .catch(error => console.error('Erreur lors de la récupération des tables :', error));
+    }, []);
+
+    const chercherTableDB = (event: any) => {
         const tableName = event.target.value;
-        const table = tables.find((t) => t.name === tableName);
-        setSelectedTable(tableName);
-        setSelectedFields(table?.fields || []);
+        setTableSelectionnee(tableName);
+        setChampValues({}); // Réinitialiser les valeurs des champs lors du changement de table
+
+        fetch(`http://localhost:3002/api/tables/${tableName}`)
+            .then(response => response.json())
+            .then(data => {
+                setChampsTableSelectionnee(data);
+            })
+            .catch(error => console.error('Erreur lors de la récupération des champs de la table :', error));
     };
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const fieldName = event.target.name;
-        const fieldValue = event.target.value;
-        setData({ ...data, [fieldName]: fieldValue });
+    const handleInputChange = (columnName: any, value: any) => {
+        setChampValues(prevValues => ({
+            ...prevValues,
+            [columnName]: value
+        }));
     };
 
-    const handleSubmit = () => {
-        console.log("appuyé");
-        setDisplayTable(true);
+    const insertion_valeurs = async () => {
+        const response = await fetch(`http://localhost:3002/api/tables/${tableSelectionnee}/insertion`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(champValues),
 
 
+        });
+
+        if (response.ok) {
+            console.log("Insertion réussie");
+            toast({
+                title: "Insertion réussie !",
+                description: "Les données ont été insérées dans la BDD, avec succès.",
+                status: "success",
+                duration: 2000,
+                isClosable: true,
+            });
+        } else {
+            // afficher erreur sql
+            console.error("Erreur lors de l'insertion");
+            toast({
+                title: "Erreur lors de l'insertion !!!",
+                description: "Veuillez regarder la synthaxe des champs",
+                status: "error",
+                duration: 2000,
+                isClosable: true,
+            });
+        }
     };
+
 
     return (
         <>
             <Navbar />
-            <Box as="main" minH={"calc(100vh - 8rem)"}>
+            <Box as="main" minH="calc(100vh - 8rem)">
                 <Heading as="h1" mb={4}>
                     Encodage de données
                 </Heading>
-                <FormControl mb={4}>
+                <FormControl mb={4} ms={3}>
                     <FormLabel>Sélectionner une table :</FormLabel>
-                    <Select placeholder="Sélectionner une table" value={selectedTable} onChange={handleTableChange}>
-                        {tables.map((table) => (
-                            <option key={table.name} value={table.name}>
-                                {table.name}
-                            </option>
-                        ))}
-                    </Select>
+                    <Flex alignItems="center">
+                        <Select borderColor={"cyan"} width={'400px'} variant="filled" onChange={chercherTableDB} >
+                            {tables.map(tableName => (
+                                <option key={tableName} value={tableName}>
+                                    {tableName}
+                                </option>
+                            ))}
+                        </Select>
+                        <Popover>
+                            <PopoverTrigger>
+                                <IconButton ml={3} aria-label={''} icon={<InfoIcon />} >Info Synthaxe</IconButton>
+                            </PopoverTrigger>
+                            <PopoverContent>
+                                <PopoverArrow />
+                                <PopoverHeader>Informations niveau Synthaxe</PopoverHeader>
+                                <PopoverBody>
+                                    Date: MM-DD-YYYY <br />
+                                    Heure: HH:MM:SS <br />
+                                    varchar: GE123 (chaine de caractères) <br />
+                                    int: 123 (entier) <br />
+                                    float: 12.34 (nombre à virgule) <br />
+                                </PopoverBody>
+                            </PopoverContent>
+                        </Popover>
+                    </Flex>
                 </FormControl>
-                <Flex direction="column">
-                    {selectedFields.map((field) => (
-                        <FormControl key={field} mb={4}>
-                            <FormLabel>{field}</FormLabel>
-                            <Input
-                                type="text"
-                                name={field}
-                                value={data[field] || ''}
-                                onChange={handleInputChange}
-                                placeholder={`Entrez ${field}`}
-                            />
-                        </FormControl>
-                    ))}
-                </Flex>
-                <Flex justify="flex-end" mb={4}>
-                    <Button colorScheme="blue" onClick={handleSubmit}>
-                        Enregistrer
+
+
+                {champsTableSelectionnee.map((champ: any, index: number) => (
+                    <FormControl key={index} mb={4} ms={3}>
+                        <FormLabel>{champ.column_name} :</FormLabel>
+                        <Input
+                            borderColor={"cyan.500"}
+                            htmlSize={25}
+                            width={'auto'}
+                            variant="filled"
+                            placeholder={`Entrer un(e) ${champ.data_type} `}
+                            value={champValues[champ.column_name] || ''} //réinitialise les valeurs des champs lors du changement de table
+                            onChange={(e) => handleInputChange(champ.column_name, e.target.value)}
+
+                        />
+                    </FormControl>
+                ))}
+
+                <Flex mb={4} ms={3}>
+                    <Button colorScheme="cyan" onClick={insertion_valeurs}>
+                        Insérer les données
                     </Button>
                 </Flex>
-                {displayTable && (
-                    <Box overflowX="auto">
-                        <Table variant="simple">
-                            <Thead>
-                                <Tr>
-                                    {selectedFields.map((field) => (
-                                        <Th key={field}>{field}</Th>
-                                    ))}
-                                </Tr>
-                            </Thead>
-                            <Tbody>
-                                <Tr>
-                                    {selectedFields.map((field) => (
-                                        <Td key={field}>{data[field] || ''}</Td>
-                                    ))}
-                                </Tr>
-                            </Tbody>
-                        </Table>
-                    </Box>
-                )}
+            </Box >
 
-            </Box>
+
             <Footer />
+
+
         </>
-
     );
-};
-
+}

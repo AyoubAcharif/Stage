@@ -5,7 +5,6 @@ const cors = require('cors');
 const sql = require('msnodesqlv8');
 const app = express();
 const port = 3001;
-const connexion_db = require('./db');
 
 // Info AD
 const adConfig = {
@@ -40,7 +39,7 @@ app.post('/api/login', (req, res) => {
 
             const quadri_name = username.split('\\')[1];
 
-            //voir doc: npmjs.com
+            //voir doc: npmjs.com ad2
 
             ad.isUserMemberOf(quadri_name, 'G Research and Development GeGa DB Administrators', (err, isMember) => {
                 if (err) {
@@ -50,19 +49,8 @@ app.post('/api/login', (req, res) => {
 
                 if (isMember) {
                     console.log('L\'utilisateur appartient au groupe \'G Research and Development GeGa DB Administrators\'.');
-
-
-
-                    connexion_db(username, password, (err) => {
-                        if (err) {
-                            console.error('Erreur lors de la connexion à la base de données:', err);
-                            return res.status(500).send({ message: 'Erreur de connexion à la base de données.' });
-                        }
-                        console.log('Connecté à la base de données avec succès');
-
-                        return res.status(200).send({ message: 'Authentification et connexion à la base de données réussies.' });
-                    });
                     return res.status(200).send({ message: 'Authentification réussie.' });
+
                 } else {
                     console.log('L\'utilisateur n\'appartient pas au groupe \'G Research and Development GeGa DB Administrators\'.');
                     return res.status(403).send({ message: 'Accès refusé.' });

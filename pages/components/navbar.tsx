@@ -1,5 +1,5 @@
 // Navbar.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Box,
     Flex,
@@ -22,8 +22,6 @@ import {
     AlertDialogHeader,
     AlertDialogContent,
     AlertDialogOverlay,
-    Alert,
-    AlertIcon
 } from '@chakra-ui/react';
 import { SunIcon, MoonIcon } from '@chakra-ui/icons';
 import Link from 'next/link';
@@ -40,6 +38,14 @@ export default function Navbar() {
     const cancelRef = React.useRef();
     const router = useRouter();
 
+    useEffect(() => {
+        // Récupérez le statut de connexion depuis le localStorage lors du chargement du composant
+        const loggedInStatus = localStorage.getItem('isLoggedIn');
+        if (loggedInStatus === 'true') {
+            setIsAuthenticated(true);
+        }
+    }, []);
+
     const handleLogin = () => {
         fetch('http://localhost:3001/api/login', {
             method: 'POST',
@@ -51,13 +57,14 @@ export default function Navbar() {
             .then(response => {
                 if (response.ok) {
                     setIsAuthenticated(true);
-                    setIsAlertOpen(true); // Afficher l'alerte de connexion réussie
+                    setIsAlertOpen(true);
+                    localStorage.setItem('isLoggedIn', 'true');
                     setTimeout(() => {
-                        setIsAlertOpen(false); // Fermer l'alerte après 3 secondes
+                        setIsAlertOpen(false);
                     }, 1500);
                 } else {
                     setIsAuthenticated(false);
-                    setIsErrorAlertOpen(true); // Afficher l'alerte d'erreur de connexion
+                    setIsErrorAlertOpen(true);
                     setTimeout(() => {
                         setIsErrorAlertOpen(false);
                     }, 1500)
@@ -66,12 +73,11 @@ export default function Navbar() {
             .catch(error => {
                 console.error('Erreur lors de l\'authentification ', error);
                 setIsAuthenticated(false);
-                setIsErrorAlertOpen(true); // Afficher l'alerte d'erreur de connexion
+                setIsErrorAlertOpen(true);
             });
     };
 
     const handleLogout = () => {
-        // fermer session sql
         fetch('http://localhost:3001/api/logout', {
             method: 'POST',
             headers: {
@@ -80,6 +86,7 @@ export default function Navbar() {
         })
             .then(response => {
                 if (response.ok) {
+                    localStorage.setItem('isLoggedIn', 'false');
                     console.log('Déconnexion réussie');
                 } else {
                     console.log('Erreur lors de la déconnexion');
@@ -89,13 +96,14 @@ export default function Navbar() {
                 console.error('Erreur lors de la déconnexion ', error);
             });
 
-        localStorage.removeItem("token");//supprimer le token
         setIsAuthenticated(false);
         setUsername('');
         setPassword('');
+        //localstorage => sert à stocker des données dans le navigateur
+        localStorage.setItem('isLoggedIn', 'false');
         router.push('/');
-
     };
+
 
     return (
         <>
