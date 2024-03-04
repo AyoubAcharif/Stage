@@ -20,13 +20,18 @@ import {
 import Navbar from './components/navbar';
 import Footer from './components/footer';
 import { InfoIcon } from '@chakra-ui/icons';
+import { useAuth } from './AuthContext';
+
 
 export default function EncodagePage() {
+    const { isAuthenticated, username } = useAuth(); // Assurez-vous d'appeler useAuth à l'intérieur du composant
     const [tables, setTables] = useState([]);
     const [tableSelectionnee, setTableSelectionnee] = useState('');
     const [champsTableSelectionnee, setChampsTableSelectionnee] = useState([]);
     const [champValues, setChampValues] = useState({});
-    const toast = useToast()
+    const toast = useToast();
+
+
 
     useEffect(() => {
         fetch('/api/tables')
@@ -34,6 +39,23 @@ export default function EncodagePage() {
             .then(data => setTables(data))
             .catch(error => console.error('Erreur lors de la récupération des tables :', error));
     }, []);
+
+    useEffect(() => {
+        if (isAuthenticated && username) {
+
+            fetch('/api/userInfo?username=' + encodeURIComponent(username))
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Erreur lors de la récupération des informations utilisateur');
+                    }
+                })
+                .then(data => {
+                })
+                .catch(error => console.error('Erreur lors de la récupération des informations utilisateur :', error));
+        }
+    }, [isAuthenticated, username]); // Inclure username dans les dépendances
 
     const chercherTableDB = (event: any) => {
         const tableName = event.target.value;
@@ -56,12 +78,17 @@ export default function EncodagePage() {
     };
 
     const insertion_valeurs = async () => {
-        const response = await fetch(`/api/tables/${tableSelectionnee}/insertion`, {
+        const requestBody = {
+            ...champValues,
+
+        };
+        const response = await fetch(`/api/tables/${tableSelectionnee}/insertion?username=${encodeURIComponent(username)}`, {
+
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(champValues),
+            body: JSON.stringify(requestBody),
 
 
         });
@@ -135,7 +162,7 @@ export default function EncodagePage() {
                             width={'auto'}
                             variant="filled"
                             placeholder={`Entrer un(e) ${champ.data_type} `}
-                            value={champValues[champ.column_name] || ''} //réinitialise les valeurs des champs lors du changement de table
+                            value={champValues[champ.column_name as keyof typeof champValues] || ''} //réinitialise les valeurs des champs lors du changement de table
                             onChange={(e) => handleInputChange(champ.column_name, e.target.value)}
 
                         />

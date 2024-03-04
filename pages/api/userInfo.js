@@ -26,6 +26,7 @@ export default function handler(req, res) {
                 console.log('User: ' + username + ' not found.');
                 return res.status(404).json({ message: 'Utilisateur non trouvé.' });
             } else {
+
                 return res.status(200).json({ commonName: user.cn });
             }
         });

@@ -1,5 +1,5 @@
 // Navbar.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Box,
     Flex,
@@ -29,14 +29,14 @@ import { useAuth } from '../AuthContext';
 import { useRouter } from 'next/router';
 
 export default function Navbar() {
-    const { isAuthenticated, setIsAuthenticated } = useAuth();
-    const [username, setUsername] = useState('');
+    const { isAuthenticated, setIsAuthenticated, username, setUsername } = useAuth();
     const [password, setPassword] = useState('');
     const [isAlertOpen, setIsAlertOpen] = useState(false);
     const [isErrorAlertOpen, setIsErrorAlertOpen] = useState(false);
     const [userInfo, setUserInfo] = useState('');
+
     const { colorMode, toggleColorMode } = useColorMode();
-    const cancelRef = React.useRef();
+    const cancelRef = useRef();
     const router = useRouter();
 
     useEffect(() => {
@@ -54,7 +54,7 @@ export default function Navbar() {
                 })
                 .catch(error => console.error('Erreur lors de la récupération des informations utilisateur :', error));
         }
-    }, [isAuthenticated]);
+    }, [isAuthenticated, username]);
 
     const handleLogin = () => {
         fetch('/api/login', {
@@ -88,7 +88,6 @@ export default function Navbar() {
     };
 
     const handleLogout = () => {
-        // Déconnecter l'utilisateur
         fetch('/api/logout', {
             method: 'POST',
             headers: {
